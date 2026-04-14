@@ -63,6 +63,19 @@ with tab2:
     st.write("Most Returned Products")
     st.bar_chart(top_returns.set_index("DESCRIPTION")["RETURN_VALUE"])
 
+    # -------------------------------
+    # Product details table
+    # -------------------------------
+    st.write("Top Product Details")
+    st.dataframe(
+        top_products[[
+            "DESCRIPTION",
+            "TOTAL_REVENUE",
+            "TOTAL_ORDERS",
+            "TOTAL_QUANTITY_SOLD"
+        ]],
+        use_container_width=True
+    )
 
 
 import altair as alt
@@ -98,6 +111,12 @@ with tab3:
     ).interactive()
 
     st.altair_chart(chart, use_container_width=True)
+
+    st.write(f"Rows plotted: {len(customer_chart_df)}")
+    st.dataframe(
+        customer_chart_df[["CUSTOMER_ID", "TOTAL_ORDER", "TOTAL_SPENT", "ORDER_GROUP"]],
+        use_container_width=True
+    )
 
     st.write(f"Rows plotted: {len(customer_chart_df)}")
     st.dataframe(
