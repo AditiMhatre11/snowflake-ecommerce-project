@@ -42,41 +42,37 @@ with tab1:
     st.dataframe(sales_df, use_container_width=True)
 
 with tab2:
+      
     st.subheader("Product Performance")
 
     top_n = st.slider("Top N Products", min_value=5, max_value=20, value=10)
 
-    # Top products (no change)
-    top_products = product_df.sort_values("TOTAL_REVENUE", ascending=False).head(top_n)
+    product_clean = product_df.copy()
+    product_clean["DESCRIPTION"] = product_clean["DESCRIPTION"].fillna("").astype(str).str.strip()
+    product_clean["TOTAL_REVENUE"] = pd.to_numeric(product_clean["TOTAL_REVENUE"], errors="coerce").fillna(0)
 
-    filtered_returns = product_df[
-        ~product_df["DESCRIPTION"].str.contains(
-            "fee|charge|discount|manual", case=False, na=False
-        )
-    ]
-
-    top_returns = filtered_returns.sort_values("RETURN_VALUE", ascending=False).head(top_n)
+    top_products = product_clean.sort_values("TOTAL_REVENUE", ascending=False).head(top_n)
 
     st.write("Top Products by Revenue")
     st.bar_chart(top_products.set_index("DESCRIPTION")["TOTAL_REVENUE"])
 
+
+
+    returns_clean = product_df.copy()
+    returns_clean["DESCRIPTION"] = returns_clean["DESCRIPTION"].fillna("").astype(str).str.strip()
+    returns_clean["RETURN_VALUE"] = pd.to_numeric(returns_clean["RETURN_VALUE"], errors="coerce").fillna(0).abs()
+    returns_clean = returns_clean[
+        (returns_clean["DESCRIPTION"] != "") &
+        (returns_clean["RETURN_VALUE"] > 0)
+    ]
+    top_returns = returns_clean.sort_values("RETURN_VALUE", ascending=False).head(top_n)
+
     st.write("Most Returned Products")
-    st.bar_chart(top_returns.set_index("DESCRIPTION")["RETURN_VALUE"])
-
-    # -------------------------------
-    # Product details table
-    # -------------------------------
-    st.write("Top Product Details")
-    st.dataframe(
-        top_products[[
-            "DESCRIPTION",
-            "TOTAL_REVENUE",
-            "TOTAL_ORDERS",
-            "TOTAL_QUANTITY_SOLD"
-        ]],
-        use_container_width=True
-    )
-
+    if top_returns.empty:
+        st.warning("No returned product data available.")
+    else:
+        st.bar_chart(top_returns.set_index("DESCRIPTION")["RETURN_VALUE"])
+        
 
 import altair as alt
 import pandas as pd
